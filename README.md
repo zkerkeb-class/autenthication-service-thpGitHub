@@ -114,6 +114,49 @@ pnpm start
 
 - `GET /profile` - Obtenir le profil de l'utilisateur connecté
 
+### API protégée par JWT
+
+- `GET /api/protected` - Route protégée nécessitant un token JWT valide
+- `GET /api/admin` - Route protégée accessible uniquement par les utilisateurs ayant le rôle "admin"
+
+## Authentification JWT
+
+Le service utilise JSON Web Tokens (JWT) pour sécuriser les API :
+
+### Génération de tokens
+
+- `POST /token` - Génère un token JWT pour un utilisateur authentifié via session
+- `GET /generate-token-demo` - Page de démonstration pour générer et tester les tokens
+
+### Structure du token JWT
+
+```json
+{
+  "id": "45873241",         // ID utilisateur
+  "email": "user@example.com",
+  "provider": "github",     // Fournisseur d'authentification
+  "roles": ["user"],        // Rôles utilisateur (optionnel)
+  "iat": 1744381340,        // Issued At (timestamp d'émission)
+  "exp": 1744382240         // Expiration (timestamp d'expiration)
+}
+```
+
+### Utilisation des tokens
+
+1. Générer un token via l'API `/token` ou la page `/demo-token`
+2. Inclure le token dans l'en-tête HTTP des requêtes API :
+   ```
+   Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI...
+   ```
+3. Accéder aux routes protégées commençant par `/api/`
+
+### Sécurité JWT
+
+- Tous les endpoints `/api/*` sont automatiquement protégés par JWT
+- Les tokens expirent après 15 minutes par défaut
+- Le refresh token (cookie HTTP-only) permet d'obtenir un nouveau token sans reconnexion
+- Une route `/token/refresh` permet de rafraîchir un token expiré
+
 ## Structure du projet
 
 ```
