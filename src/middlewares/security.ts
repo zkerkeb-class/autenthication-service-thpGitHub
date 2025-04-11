@@ -4,7 +4,15 @@ import { Request, Response, NextFunction } from 'express';
 import config from '../config/env';
 
 // Apply security headers using helmet
-export const securityHeaders = helmet();
+export const securityHeaders = helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    }
+  }
+});
 
 // Rate limiting to prevent brute force attacks
 export const rateLimiter = rateLimit({

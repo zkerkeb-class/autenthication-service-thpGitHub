@@ -110,18 +110,101 @@ export const getHomePage = (req: Request, res: Response) => {
   `);
 };
 
-// Check authentication status
+// Authentification avec GitHub
+export const githubAuth = passport.authenticate('github', { scope: ['user:email'] });
+
+// Callback après authentification GitHub
+export const githubCallback = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate('github', { session: true }, (err: Error | null, user: any) => {
+    if (err) {
+      return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
+    }
+    
+    if (!user) {
+      return res.redirect(`/auth/error?message=Authentication failed`);
+    }
+    
+    req.logIn(user, (err: Error | null) => {
+      if (err) {
+        return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
+      }
+      
+      // Rediriger vers le profil plutôt que /auth/success
+      return res.redirect(`/profile`);
+    });
+  })(req, res, next);
+};
+
+// Authentification avec Google
+export const googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
+
+// Callback après authentification Google
+export const googleCallback = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate('google', { session: true }, (err: Error | null, user: any) => {
+    if (err) {
+      return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
+    }
+    
+    if (!user) {
+      return res.redirect(`/auth/error?message=Authentication failed`);
+    }
+    
+    req.logIn(user, (err: Error | null) => {
+      if (err) {
+        return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
+      }
+      
+      // Rediriger vers le profil plutôt que /auth/success
+      return res.redirect(`/profile`);
+    });
+  })(req, res, next);
+};
+
+// Déconnexion
+export const logout = (req: Request, res: Response) => {
+  req.logout((err: Error | null) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error during logout',
+        error: err.message
+      });
+    }
+    
+    // Rediriger vers la page d'accueil
+    res.redirect(process.env.FRONTEND_URL || '/');
+  });
+};
+
+// Vérifier le statut d'authentification
 export const getAuthStatus = (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
-    res.json({
-      authenticated: true,
+    return res.json({
+      success: true,
+      isAuthenticated: true,
       user: req.user
     });
   } else {
-    res.json({
-      authenticated: false
+    return res.json({
+      success: true,
+      isAuthenticated: false
     });
   }
+};
+
+// Récupérer le profil de l'utilisateur connecté
+export const getProfile = (req: Request, res: Response) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated'
+    });
+  }
+  
+  return res.json({
+    success: true,
+    user: req.user
+  });
 };
 
 // Get authentication URLs
@@ -130,31 +213,5 @@ export const getAuthUrls = (req: Request, res: Response) => {
   res.json({
     github: `${baseUrl}/auth/github`,
     google: `${baseUrl}/auth/google`
-  });
-};
-
-// Logout user
-export const logout = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // @ts-ignore - TypeScript doesn't know about the logout callback
-    req.logout((err: Error) => {
-      if (err) {
-        return next(createError('Logout failed', 500));
-      }
-      res.json({ success: true, message: 'Logged out successfully' });
-    });
-  } catch (error) {
-    next(createError('Logout failed', 500));
-  }
-};
-
-// Profile page - protected route
-export const getProfile = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.isAuthenticated()) {
-    return next(createError('Unauthorized - Please login first', 401));
-  }
-  
-  res.json({
-    user: req.user
   });
 }; 

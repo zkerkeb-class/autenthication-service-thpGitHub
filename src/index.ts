@@ -8,6 +8,7 @@ import { setupPassport } from './config/passport';
 import { securityHeaders, rateLimiter as rateLimit, forceHttps, validateContentType } from './middlewares/security';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import routes from './routes';
+import tokenRoutes from './routes/tokenRoutes';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -41,6 +42,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/', routes);
+app.use('/', tokenRoutes);
 
 // Error handling
 app.use(notFoundHandler);
