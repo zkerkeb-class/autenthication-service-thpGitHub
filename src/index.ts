@@ -14,6 +14,8 @@ import {
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import routes from './routes';
 import tokenRoutes from './routes/tokenRoutes';
+import logger from './utils/pinoLogger';
+import { requestLogger, errorLogger } from './utils/loggerMiddleware';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -23,6 +25,11 @@ app.use(securityHeaders);
 app.use(rateLimit);
 app.use(forceHttps);
 app.use(validateContentType);
+
+// Logger middleware - doit être placé avant les autres middlewares
+// pour capturer toutes les requêtes
+app.use(requestLogger);
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -54,6 +61,7 @@ app.use('/', routes);
 app.use('/', tokenRoutes);
 
 // Error handling
+app.use(errorLogger);  // Logger d'erreurs avant le handler d'erreurs
 app.use(notFoundHandler);
 app.use(errorHandler);
 
@@ -62,11 +70,11 @@ const startServer = async () => {
   try {
     await connectDB();
     app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-      console.log(`Environment: ${process.env.NODE_ENV}`);
+      logger.info(`Server running on port ${port}`);
+      logger.info(`Environment: ${process.env.NODE_ENV}`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error({ err: error }, 'Failed to start server');
     process.exit(1);
   }
 };

@@ -198,6 +198,36 @@ Le projet intègre plusieurs outils et pratiques pour garantir une haute qualit�
 
 - **JSDoc** : Documentation des composants, interfaces et fonctions
 
+### Logging
+
+Le projet utilise un système de logging professionnel avec deux options configurées :
+
+#### Winston
+- Logger polyvalent et hautement configurable
+- Différents niveaux de logs (error, warn, info, debug)
+- Formatage colorisé en développement
+- Logs séparés en production (fichiers error.log et combined.log)
+
+#### Pino
+- Logger ultra-performant avec impact minimal sur les performances
+- Format JSON pour une intégration facile avec des outils d'analyse
+- Configuration adaptée à chaque environnement (dev, test, prod)
+- Middleware Express intégré pour le logging de toutes les requêtes HTTP
+
+Pour utiliser les loggers :
+
+```typescript
+// Winston
+import logger from './utils/logger';
+logger.info('Information message');
+logger.error('Error message', { context: 'additional data' });
+
+// Pino
+import logger from './utils/pinoLogger';
+logger.info({ user: 'user123' }, 'User logged in');
+logger.error({ err: error }, 'Operation failed');
+```
+
 ### Scripts disponibles
 
 ```bash
