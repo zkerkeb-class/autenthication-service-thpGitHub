@@ -310,6 +310,84 @@ Pour le déploiement en production :
 3. Définir `NODE_ENV=production`
 4. Utiliser un proxy inverse (Nginx, etc.) pour gérer HTTPS
 
+## Déploiement avec Docker
+
+Le service est entièrement dockerisé pour faciliter le déploiement et la portabilité.
+
+### Prérequis
+
+- Docker et Docker Compose installés sur votre machine
+- Git pour cloner le dépôt
+
+### Fichiers de configuration Docker
+
+- `Dockerfile` - Configuration du conteneur pour le service d'authentification
+- `docker-compose.yml` - Orchestration des services (authentification + MongoDB)
+- `.dockerignore` - Fichiers exclus lors de la construction de l'image
+- `mongo-init.js` - Script d'initialisation de la base de données MongoDB
+- `.env.docker` - Variables d'environnement pour l'environnement Docker
+
+### Déploiement rapide
+
+1. Cloner le dépôt
+```bash
+git clone <url-du-repo>
+cd authentication-service
+```
+
+2. Configurer les variables d'environnement
+```bash
+cp .env.docker .env
+# Modifiez les secrets, clés OAuth et autres variables selon vos besoins
+```
+
+3. Lancer les services avec Docker Compose
+```bash
+docker-compose up -d
+```
+
+4. Vérifier que les services fonctionnent
+```bash
+docker-compose ps
+```
+
+5. Accéder au service
+```
+http://localhost:3000
+```
+
+### Gestion des conteneurs
+
+```bash
+# Voir les logs du service d'authentification
+docker-compose logs -f auth-service
+
+# Redémarrer un service
+docker-compose restart auth-service
+
+# Arrêter tous les services
+docker-compose down
+
+# Arrêter et supprimer les volumes (ATTENTION: efface les données de la base)
+docker-compose down -v
+```
+
+### Architecture Docker
+
+L'application est organisée en deux services principaux :
+
+1. **auth-service** : Service d'authentification Node.js
+   - Build en multi-stage pour une image légère
+   - Optimisé pour la production
+   - Volume pour la persistance des logs
+
+2. **mongodb** : Base de données MongoDB
+   - Authentification sécurisée
+   - Volume pour la persistance des données
+   - Script d'initialisation pour créer les utilisateurs et collections
+
+Les services sont connectés via un réseau dédié et utilisent des healthchecks pour assurer leur disponibilité.
+
 ## Licence
 
 MIT 

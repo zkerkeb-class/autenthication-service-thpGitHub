@@ -6,6 +6,7 @@ node_modules/
 
 .env
 .env.local
+.env.docker
 .env.development.local
 .env.test.local
 .env.production.local
@@ -27,3 +28,7 @@ yarn-error.log*
 /.nyc_output
 
 *.tsbuildinfo
+
+# Docker volumes
+mongodb-data/
+auth-logs/
