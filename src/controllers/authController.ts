@@ -3,7 +3,19 @@ import passport from 'passport';
 import { createError } from '../middlewares/errorHandler';
 import config from '../config/env';
 
-// Homepage with login options
+/**
+ * Contrôleur gérant l'authentification des utilisateurs
+ * @module AuthController
+ */
+
+/**
+ * Affiche la page d'accueil avec les options de connexion
+ *
+ * @function getHomePage
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @returns {void}
+ */
 export const getHomePage = (req: Request, res: Response) => {
   res.send(`
     <!DOCTYPE html>
@@ -110,108 +122,162 @@ export const getHomePage = (req: Request, res: Response) => {
   `);
 };
 
-// Authentification avec GitHub
+/**
+ * Initialise l'authentification GitHub
+ *
+ * @function githubAuth
+ * @type {Function}
+ */
 export const githubAuth = passport.authenticate('github', { scope: ['user:email'] });
 
-// Callback après authentification GitHub
+/**
+ * Gère le callback après authentification GitHub
+ *
+ * @function githubCallback
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @param {NextFunction} next - Fonction next d'Express
+ * @returns {void}
+ */
 export const githubCallback = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('github', { session: true }, (err: Error | null, user: any) => {
     if (err) {
       return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
     }
-    
+
     if (!user) {
       return res.redirect(`/auth/error?message=Authentication failed`);
     }
-    
+
     req.logIn(user, (err: Error | null) => {
       if (err) {
         return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
       }
-      
+
       // Rediriger vers le profil plutôt que /auth/success
       return res.redirect(`/profile`);
     });
   })(req, res, next);
 };
 
-// Authentification avec Google
+/**
+ * Initialise l'authentification Google
+ *
+ * @function googleAuth
+ * @type {Function}
+ */
 export const googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
 
-// Callback après authentification Google
+/**
+ * Gère le callback après authentification Google
+ *
+ * @function googleCallback
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @param {NextFunction} next - Fonction next d'Express
+ * @returns {void}
+ */
 export const googleCallback = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate('google', { session: true }, (err: Error | null, user: any) => {
     if (err) {
       return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
     }
-    
+
     if (!user) {
       return res.redirect(`/auth/error?message=Authentication failed`);
     }
-    
+
     req.logIn(user, (err: Error | null) => {
       if (err) {
         return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
       }
-      
+
       // Rediriger vers le profil plutôt que /auth/success
       return res.redirect(`/profile`);
     });
   })(req, res, next);
 };
 
-// Déconnexion
+/**
+ * Déconnecte l'utilisateur et détruit la session
+ *
+ * @function logout
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @returns {void}
+ */
 export const logout = (req: Request, res: Response) => {
   req.logout((err: Error | null) => {
     if (err) {
       return res.status(500).json({
         success: false,
         message: 'Error during logout',
-        error: err.message
+        error: err.message,
       });
     }
-    
+
     // Rediriger vers la page d'accueil
     res.redirect(process.env.FRONTEND_URL || '/');
   });
 };
 
-// Vérifier le statut d'authentification
+/**
+ * Vérifie si l'utilisateur est authentifié et renvoie son statut
+ *
+ * @function getAuthStatus
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @returns {Object} Statut d'authentification et infos utilisateur si connecté
+ */
 export const getAuthStatus = (req: Request, res: Response) => {
   if (req.isAuthenticated()) {
     return res.json({
       success: true,
       isAuthenticated: true,
-      user: req.user
+      user: req.user,
     });
   } else {
     return res.json({
       success: true,
-      isAuthenticated: false
+      isAuthenticated: false,
     });
   }
 };
 
-// Récupérer le profil de l'utilisateur connecté
+/**
+ * Renvoie le profil de l'utilisateur connecté
+ *
+ * @function getProfile
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @returns {Object} Données de profil utilisateur ou message d'erreur
+ */
 export const getProfile = (req: Request, res: Response) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({
       success: false,
-      message: 'Not authenticated'
+      message: 'Not authenticated',
     });
   }
-  
+
   return res.json({
     success: true,
-    user: req.user
+    user: req.user,
   });
 };
 
-// Get authentication URLs
+/**
+ * Renvoie les URLs d'authentification disponibles
+ *
+ * @function getAuthUrls
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @returns {Object} URLs d'authentification pour chaque provider
+ */
 export const getAuthUrls = (req: Request, res: Response) => {
   const baseUrl = config.urls.callback.split('/auth/callback')[0];
   res.json({
     github: `${baseUrl}/auth/github`,
-    google: `${baseUrl}/auth/google`
+    google: `${baseUrl}/auth/google`,
   });
-}; 
+};

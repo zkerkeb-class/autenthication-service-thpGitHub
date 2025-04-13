@@ -10,8 +10,8 @@ export const securityHeaders = helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-    }
-  }
+    },
+  },
 });
 
 // Rate limiting to prevent brute force attacks
@@ -37,4 +37,4 @@ export const validateContentType = (req: Request, res: Response, next: NextFunct
     return res.status(415).json({ error: 'Unsupported Media Type. Expected application/json' });
   }
   next();
-}; 
+};

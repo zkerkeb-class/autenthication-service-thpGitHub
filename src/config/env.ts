@@ -44,14 +44,14 @@ export default {
     google: {
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
-    }
+    },
   },
   urls: {
     callback: CALLBACK_URL,
-    frontend: FRONTEND_URL
+    frontend: FRONTEND_URL,
   },
   rateLimit: {
     windowMs: RATE_LIMIT_WINDOW_MS,
-    max: RATE_LIMIT_MAX
-  }
-}; 
+    max: RATE_LIMIT_MAX,
+  },
+};

@@ -1,5 +1,17 @@
 import { Schema, model } from 'mongoose';
 
+/**
+ * Interface représentant un token de rafraîchissement dans le système
+ *
+ * @interface IToken
+ * @property {string} userId - Identifiant de l'utilisateur associé au token
+ * @property {string} refreshToken - Token de rafraîchissement unique
+ * @property {Date} expiresAt - Date d'expiration du token
+ * @property {boolean} isRevoked - Indique si le token a été révoqué
+ * @property {string} [userAgent] - Agent utilisateur qui a généré le token
+ * @property {string} [ipAddress] - Adresse IP qui a généré le token
+ * @property {Date} createdAt - Date de création du token
+ */
 interface IToken {
   userId: string;
   refreshToken: string;
@@ -10,6 +22,11 @@ interface IToken {
   createdAt: Date;
 }
 
+/**
+ * Schéma Mongoose pour les tokens de rafraîchissement
+ *
+ * @type {Schema<IToken>}
+ */
 const tokenSchema = new Schema<IToken>({
   userId: { type: String, required: true },
   refreshToken: { type: String, required: true, unique: true },
@@ -17,11 +34,16 @@ const tokenSchema = new Schema<IToken>({
   isRevoked: { type: Boolean, default: false },
   userAgent: { type: String },
   ipAddress: { type: String },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 
 // Index pour accélérer les recherches
 tokenSchema.index({ userId: 1 });
 tokenSchema.index({ refreshToken: 1 });
 
-export const Token = model<IToken>('Token', tokenSchema); 
+/**
+ * Modèle Mongoose pour les tokens de rafraîchissement
+ *
+ * @constant {Model<IToken>} Token
+ */
+export const Token = model<IToken>('Token', tokenSchema);

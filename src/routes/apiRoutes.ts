@@ -18,15 +18,15 @@ router.get('/profile', authController.getProfile);
 router.get('/protected', (req: RequestWithJwt, res) => {
   // À ce stade, req.jwtUser est garanti d'exister grâce au middleware verifyJWT global
   const user = req.jwtUser as UserJwtPayload;
-  
+
   return res.json({
     success: true,
     message: 'Accès autorisé à la route protégée',
     user: {
       id: user.id,
       email: user.email,
-      provider: user.provider
-    }
+      provider: user.provider,
+    },
   });
 });
 
@@ -39,8 +39,8 @@ router.get('/admin', hasRole(['admin']), (req: RequestWithJwt, res) => {
   return res.json({
     success: true,
     message: 'Accès autorisé à la route admin',
-    user: req.jwtUser
+    user: req.jwtUser,
   });
 });
 
-export default router; 
+export default router;

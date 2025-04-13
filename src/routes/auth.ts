@@ -13,10 +13,10 @@ router.get('/callback/google', authController.googleCallback);
 
 // Page d'erreur simple
 router.get('/error', (req, res) => {
-  const message = req.query.message || 'Une erreur s\'est produite';
+  const message = req.query.message || "Une erreur s'est produite";
   res.status(400).json({
     success: false,
-    message
+    message,
   });
 });
 
@@ -25,7 +25,7 @@ router.get('/success', (req, res) => {
   res.json({
     success: true,
     message: 'Authentification réussie',
-    user: req.user
+    user: req.user,
   });
 });
 
@@ -38,4 +38,4 @@ router.get('/status', authController.getAuthStatus);
 // Obtenir les URLs d'authentification
 router.get('/urls', authController.getAuthUrls);
 
-export default router; 
+export default router;

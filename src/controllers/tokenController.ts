@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { 
+import {
   generateTokens,
   refreshAccessToken,
   revokeRefreshToken,
-  revokeAllUserTokens
+  revokeAllUserTokens,
 } from '../utils/tokenUtils';
 import { UserJwtPayload, RequestWithJwt } from '../middlewares/authJwt';
 
@@ -16,7 +16,7 @@ export const createTokens = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Utilisateur non authentifié'
+        message: 'Utilisateur non authentifié',
       });
     }
 
@@ -28,7 +28,7 @@ export const createTokens = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours en millisecondes
-      sameSite: 'lax'
+      sameSite: 'lax',
     });
 
     // Renvoyer l'access token
@@ -36,14 +36,14 @@ export const createTokens = async (req: Request, res: Response) => {
       success: true,
       data: {
         accessToken: tokens.accessToken,
-        expiresIn: tokens.expiresIn
-      }
+        expiresIn: tokens.expiresIn,
+      },
     });
   } catch (error) {
     console.error('Erreur lors de la création des tokens:', error);
     return res.status(500).json({
       success: false,
-      message: 'Erreur de serveur lors de la création des tokens'
+      message: 'Erreur de serveur lors de la création des tokens',
     });
   }
 };
@@ -59,7 +59,7 @@ export const refreshToken = async (req: Request, res: Response) => {
     if (!refreshToken) {
       return res.status(401).json({
         success: false,
-        message: 'Refresh token manquant'
+        message: 'Refresh token manquant',
       });
     }
 
@@ -70,19 +70,19 @@ export const refreshToken = async (req: Request, res: Response) => {
       success: true,
       data: {
         accessToken: result.accessToken,
-        expiresIn: result.expiresIn
-      }
+        expiresIn: result.expiresIn,
+      },
     });
   } catch (error) {
     console.error('Erreur lors du rafraîchissement du token:', error);
-    
+
     // Supprimer le cookie refresh token s'il y a eu une erreur
     res.clearCookie('refreshToken');
-    
+
     return res.status(401).json({
       success: false,
       message: 'Refresh token invalide ou expiré',
-      code: 'INVALID_REFRESH_TOKEN'
+      code: 'INVALID_REFRESH_TOKEN',
     });
   }
 };
@@ -105,13 +105,13 @@ export const logout = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Déconnexion réussie'
+      message: 'Déconnexion réussie',
     });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
     return res.status(500).json({
       success: false,
-      message: 'Erreur de serveur lors de la déconnexion'
+      message: 'Erreur de serveur lors de la déconnexion',
     });
   }
 };
@@ -125,7 +125,7 @@ export const logoutAll = async (req: RequestWithJwt, res: Response) => {
     if (!req.jwtUser || typeof req.jwtUser.id !== 'string') {
       return res.status(401).json({
         success: false,
-        message: 'Utilisateur non authentifié ou ID invalide'
+        message: 'Utilisateur non authentifié ou ID invalide',
       });
     }
 
@@ -138,13 +138,13 @@ export const logoutAll = async (req: RequestWithJwt, res: Response) => {
     return res.status(200).json({
       success: true,
       message: `Déconnexion réussie de tous les appareils (${count} sessions)`,
-      data: { count }
+      data: { count },
     });
   } catch (error) {
     console.error('Erreur lors de la déconnexion multiple:', error);
     return res.status(500).json({
       success: false,
-      message: 'Erreur de serveur lors de la déconnexion multiple'
+      message: 'Erreur de serveur lors de la déconnexion multiple',
     });
   }
-}; 
+};

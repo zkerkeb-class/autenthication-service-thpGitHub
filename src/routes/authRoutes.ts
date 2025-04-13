@@ -11,14 +11,16 @@ router.get('/github', passport.authenticate('github', { scope: ['user:email'] })
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // Callbacks
-router.get('/callback/github',
+router.get(
+  '/callback/github',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
     res.redirect('/profile');
   }
 );
 
-router.get('/callback/google',
+router.get(
+  '/callback/google',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     res.redirect('/profile');
@@ -30,4 +32,4 @@ router.get('/status', authController.getAuthStatus);
 router.get('/urls', authController.getAuthUrls);
 router.get('/logout', authController.logout);
 
-export default router; 
+export default router;

@@ -1,10 +1,5 @@
 import express from 'express';
-import { 
-  createTokens,
-  refreshToken,
-  logout,
-  logoutAll
-} from '../controllers/tokenController';
+import { createTokens, refreshToken, logout, logoutAll } from '../controllers/tokenController';
 import { verifyJWT } from '../middlewares/authJwt';
 
 const router = express.Router();
@@ -37,4 +32,4 @@ router.post('/token/revoke', logout);
  */
 router.post('/token/revoke-all', verifyJWT, logoutAll);
 
-export default router; 
+export default router;

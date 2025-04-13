@@ -5,7 +5,12 @@ import cors from 'cors';
 import passport from 'passport';
 import { connectDB } from './config/database';
 import { setupPassport } from './config/passport';
-import { securityHeaders, rateLimiter as rateLimit, forceHttps, validateContentType } from './middlewares/security';
+import {
+  securityHeaders,
+  rateLimiter as rateLimit,
+  forceHttps,
+  validateContentType,
+} from './middlewares/security';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import routes from './routes';
 import tokenRoutes from './routes/tokenRoutes';
@@ -18,22 +23,26 @@ app.use(securityHeaders);
 app.use(rateLimit);
 app.use(forceHttps);
 app.use(validateContentType);
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
-app.use(session({
-  secret: process.env.COOKIE_SECRET || 'secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24h
-  }
-}));
+app.use(
+  session({
+    secret: process.env.COOKIE_SECRET || 'secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24h
+    },
+  })
+);
 
 // Passport
 setupPassport();
@@ -62,4 +71,4 @@ const startServer = async () => {
   }
 };
 
-startServer(); 
+startServer();

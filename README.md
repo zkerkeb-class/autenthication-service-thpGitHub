@@ -167,9 +167,63 @@ Le service utilise JSON Web Tokens (JWT) pour sécuriser les API :
 │   ├── models/             # Modèles Mongoose
 │   ├── routes/             # Définitions des routes
 │   ├── utils/              # Utilitaires
+│   ├── __tests__/          # Tests unitaires et d'intégration
 │   └── index.ts            # Point d'entrée
+├── .eslintrc.js            # Configuration ESLint
+├── .prettierrc             # Configuration Prettier
+├── jest.config.js          # Configuration Jest
+├── babel.config.js         # Configuration Babel
 ├── .env                    # Variables d'environnement
 └── package.json            # Dépendances et scripts
+```
+
+## Qualité du code
+
+Le projet intègre plusieurs outils et pratiques pour garantir une haute qualité de code :
+
+### Formatage et linting
+
+- **ESLint** : Analyse statique du code pour identifier les problèmes potentiels
+- **Prettier** : Formatage cohérent du code
+- **Husky** : Hooks Git pour vérifier le code avant les commits
+- **lint-staged** : Exécution des vérifications uniquement sur les fichiers modifiés
+
+### Tests automatisés
+
+- **Jest** : Framework de test pour les tests unitaires et d'intégration
+- **Supertest** : Pour tester les API HTTP
+- **Babel** : Pour transpiler le TypeScript lors des tests
+
+### Documentation
+
+- **JSDoc** : Documentation des composants, interfaces et fonctions
+
+### Scripts disponibles
+
+```bash
+# Vérification du formatage et de la syntaxe
+pnpm lint
+
+# Correction automatique des problèmes de formatage
+pnpm lint:fix
+
+# Formatage du code
+pnpm format
+
+# Exécution des tests
+pnpm test
+
+# Tests avec mode watch (recharge à chaque modification)
+pnpm test:watch
+
+# Tests avec rapport de couverture
+pnpm test:coverage
+
+# Vérification des types TypeScript
+pnpm check-types
+
+# Validation complète (lint + types + tests)
+pnpm validate
 ```
 
 ## Modèle utilisateur

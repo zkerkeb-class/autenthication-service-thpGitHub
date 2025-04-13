@@ -10,9 +10,9 @@ const router = express.Router();
 // Page d'accueil
 router.get('/', (req, res) => {
   res.json({
-    message: 'Service d\'authentification API',
+    message: "Service d'authentification API",
     version: '1.0.0',
-    status: 'online'
+    status: 'online',
   });
 });
 
@@ -31,7 +31,7 @@ router.get('/generate-token-demo', async (req, res) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Utilisateur non authentifié'
+        message: 'Utilisateur non authentifié',
       });
     }
 
@@ -44,7 +44,7 @@ router.get('/generate-token-demo', async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
-      sameSite: 'lax'
+      sameSite: 'lax',
     });
 
     // Renvoyer l'access token
@@ -52,14 +52,14 @@ router.get('/generate-token-demo', async (req, res) => {
       success: true,
       data: {
         accessToken: tokens.accessToken,
-        expiresIn: tokens.expiresIn
-      }
+        expiresIn: tokens.expiresIn,
+      },
     });
   } catch (error) {
     console.error('Erreur lors de la génération du token:', error);
     return res.status(500).json({
       success: false,
-      message: 'Erreur serveur: ' + (error.message || 'Erreur inconnue')
+      message: 'Erreur serveur: ' + (error.message || 'Erreur inconnue'),
     });
   }
 });
@@ -324,4 +324,4 @@ router.get('/demo-token', (req, res) => {
   `);
 });
 
-export default router; 
+export default router;

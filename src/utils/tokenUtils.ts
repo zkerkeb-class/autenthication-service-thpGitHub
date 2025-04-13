@@ -23,22 +23,20 @@ export interface TokenUser {
 export const generateTokens = async (user: TokenUser, req: Request) => {
   // Préparer les données utilisateur à inclure dans le JWT (payload)
   const userId = user.id || user._id?.toString() || '';
-  
+
   const payload: UserJwtPayload = {
     id: userId,
     email: user.email || '',
-    provider: user.provider || 'local'
+    provider: user.provider || 'local',
   };
 
   // Définir la durée d'expiration
   const tokenExpiration = process.env.JWT_EXPIRES_IN || '15m';
 
   // Générer l'access token (JWT)
-  const accessToken = jwt.sign(
-    payload,
-    process.env.JWT_SECRET || 'default-jwt-secret',
-    { expiresIn: tokenExpiration as any }
-  );
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'default-jwt-secret', {
+    expiresIn: tokenExpiration as any,
+  });
 
   // Générer le refresh token (aléatoire)
   const refreshToken = crypto.randomBytes(40).toString('hex');
@@ -61,13 +59,13 @@ export const generateTokens = async (user: TokenUser, req: Request) => {
     refreshToken,
     expiresAt,
     userAgent: req.headers['user-agent'],
-    ipAddress: req.ip
+    ipAddress: req.ip,
   });
 
   return {
     accessToken,
     refreshToken,
-    expiresIn: tokenExpiration
+    expiresIn: tokenExpiration,
   };
 };
 
@@ -79,7 +77,7 @@ export const refreshAccessToken = async (refreshToken: string, req: Request) => 
   const storedToken = await Token.findOne({
     refreshToken,
     isRevoked: false,
-    expiresAt: { $gt: new Date() }
+    expiresAt: { $gt: new Date() },
   });
 
   if (!storedToken) {
@@ -93,26 +91,24 @@ export const refreshAccessToken = async (refreshToken: string, req: Request) => 
   }
 
   const userId = user.id || user._id?.toString() || '';
-  
+
   // Générer un nouvel access token
   const payload: UserJwtPayload = {
     id: userId,
     email: user.email,
-    provider: user.provider
+    provider: user.provider,
   };
 
   // Définir la durée d'expiration
   const tokenExpiration = process.env.JWT_EXPIRES_IN || '15m';
 
-  const accessToken = jwt.sign(
-    payload,
-    process.env.JWT_SECRET || 'default-jwt-secret',
-    { expiresIn: tokenExpiration as any }
-  );
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET || 'default-jwt-secret', {
+    expiresIn: tokenExpiration as any,
+  });
 
   return {
     accessToken,
-    expiresIn: tokenExpiration
+    expiresIn: tokenExpiration,
   };
 };
 
@@ -120,10 +116,7 @@ export const refreshAccessToken = async (refreshToken: string, req: Request) => 
  * Révoque un refresh token (utilisé pour la déconnexion)
  */
 export const revokeRefreshToken = async (refreshToken: string) => {
-  const result = await Token.updateOne(
-    { refreshToken },
-    { isRevoked: true }
-  );
+  const result = await Token.updateOne({ refreshToken }, { isRevoked: true });
 
   return result.modifiedCount > 0;
 };
@@ -132,10 +125,7 @@ export const revokeRefreshToken = async (refreshToken: string) => {
  * Révoque tous les refresh tokens d'un utilisateur
  */
 export const revokeAllUserTokens = async (userId: string) => {
-  const result = await Token.updateMany(
-    { userId },
-    { isRevoked: true }
-  );
+  const result = await Token.updateMany({ userId }, { isRevoked: true });
 
   return result.modifiedCount;
 };
@@ -145,11 +135,8 @@ export const revokeAllUserTokens = async (userId: string) => {
  */
 export const cleanupTokens = async () => {
   const result = await Token.deleteMany({
-    $or: [
-      { expiresAt: { $lt: new Date() } },
-      { isRevoked: true }
-    ]
+    $or: [{ expiresAt: { $lt: new Date() } }, { isRevoked: true }],
   });
 
   return result.deletedCount;
-}; 
+};
