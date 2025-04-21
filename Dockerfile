@@ -9,7 +9,8 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 COPY package.json pnpm-lock.yaml ./
 
-# Installer les dépendances
+# Installer les dépendances sans exécuter husky
+ENV HUSKY=0
 RUN pnpm install --frozen-lockfile
 
 # Copier le reste du code source
@@ -26,7 +27,6 @@ RUN npm install -g pnpm
 
 # Créer un utilisateur non-root pour plus de sécurité
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
 
 WORKDIR /app
 
@@ -34,11 +34,15 @@ WORKDIR /app
 COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 COPY --from=builder /app/dist ./dist
 
-# Installer uniquement les dépendances de production
+# Installer uniquement les dépendances de production en désactivant husky
+ENV HUSKY=0
 RUN pnpm install --prod --frozen-lockfile
 
-# Créer le dossier pour les logs
-RUN mkdir -p logs
+# Créer le dossier pour les logs et donner les permissions à appuser
+RUN mkdir -p logs && chown -R appuser:appgroup /app/logs
+
+# Changer d'utilisateur après l'installation et la création des dossiers
+USER appuser
 
 # Variables d'environnement
 ENV NODE_ENV=production

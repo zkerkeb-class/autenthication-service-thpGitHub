@@ -38,7 +38,7 @@ const fileFormat = winston.format.combine(
 );
 
 // Définition des transports (destinations des logs)
-const transports = [
+const transports: winston.transport[] = [
   // Toujours afficher en console
   new winston.transports.Console({
     format: consoleFormat,
@@ -47,14 +47,17 @@ const transports = [
 
 // En production, ajouter des logs dans des fichiers
 if (process.env.NODE_ENV === 'production') {
+  // Logs d'erreurs séparés
   transports.push(
-    // Logs d'erreurs séparés
     new winston.transports.File({
       filename: path.join('logs', 'error.log'),
       level: 'error',
       format: fileFormat,
-    }),
-    // Tous les logs
+    })
+  );
+  
+  // Tous les logs
+  transports.push(
     new winston.transports.File({
       filename: path.join('logs', 'combined.log'),
       format: fileFormat,

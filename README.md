@@ -335,10 +335,10 @@ git clone <url-du-repo>
 cd authentication-service
 ```
 
-2. Configurer les variables d'environnement
+2. Configurer les variables d'environnement Docker
 ```bash
-cp .env.docker .env
-# Modifiez les secrets, clés OAuth et autres variables selon vos besoins
+# Ouvrir et modifier le fichier .env.docker si nécessaire
+# (Pas besoin de le copier, Docker utilise directement .env.docker)
 ```
 
 3. Lancer les services avec Docker Compose
