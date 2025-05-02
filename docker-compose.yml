@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Service d'authentification
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    depends_on:
+      - mongodb
+    networks:
+      - auth-network
+    volumes:
+      - auth-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-auth-service}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - auth-network
+    command: [--auth]
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/auth-service --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+# Réseaux
+networks:
+  auth-network:
+    driver: bridge
+
+# Volumes persistants
+volumes:
+  mongodb-data:
+    driver: local
+  auth-logs:
+    driver: local 

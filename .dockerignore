@@ -1,0 +1,37 @@
+# Dépendances
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Build
+dist
+coverage
+
+# Environnement
+.env*
+!.env.example
+
+# Système
+.git
+.github
+.DS_Store
+.vscode
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+
+# Tests
+__tests__
+jest.config.js
+babel.config.js
+
+# Autres
+.husky
+README.md
+LICENSE
+.gitignore 
