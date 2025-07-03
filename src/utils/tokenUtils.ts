@@ -1,7 +1,7 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
-import { Token } from '../models/Token';
-import { User } from '../models/User';
+import { IToken } from '../models/Token';
+import { IUser } from '../models/User';
 import { Request } from 'express';
 import { UserJwtPayload } from '../middlewares/authJwt';
 
@@ -16,6 +16,9 @@ export interface TokenUser {
   provider?: string;
   [key: string]: any;
 }
+
+// Stockage en mémoire des tokens
+const tokenStore = new Map<string, IToken>();
 
 /**
  * Génère un access token JWT et un refresh token
@@ -53,14 +56,17 @@ export const generateTokens = async (user: TokenUser, req: Request) => {
     expiresAt.setDate(expiresAt.getDate() + 7);
   }
 
-  // Sauvegarder le refresh token en base de données
-  await Token.create({
+  // Sauvegarder le refresh token en mémoire
+  const token: IToken = {
     userId,
     refreshToken,
     expiresAt,
+    isRevoked: false,
     userAgent: req.headers['user-agent'],
     ipAddress: req.ip,
-  });
+    createdAt: new Date()
+  };
+  tokenStore.set(refreshToken, token);
 
   return {
     accessToken,
@@ -74,29 +80,17 @@ export const generateTokens = async (user: TokenUser, req: Request) => {
  */
 export const refreshAccessToken = async (refreshToken: string, req: Request) => {
   // Vérifier si le refresh token existe et est valide
-  const storedToken = await Token.findOne({
-    refreshToken,
-    isRevoked: false,
-    expiresAt: { $gt: new Date() },
-  });
+  const storedToken = tokenStore.get(refreshToken);
 
-  if (!storedToken) {
+  if (!storedToken || storedToken.isRevoked || storedToken.expiresAt < new Date()) {
     throw new Error('Refresh token invalide ou expiré');
   }
 
-  // Récupérer l'utilisateur associé au token
-  const user = await User.findOne({ id: storedToken.userId });
-  if (!user) {
-    throw new Error('Utilisateur non trouvé');
-  }
-
-  const userId = user.id || user._id?.toString() || '';
-
   // Générer un nouvel access token
   const payload: UserJwtPayload = {
-    id: userId,
-    email: user.email,
-    provider: user.provider,
+    id: storedToken.userId,
+    email: '',  // On n'a pas besoin de l'email pour le refresh
+    provider: 'local',  // On n'a pas besoin du provider pour le refresh
   };
 
   // Définir la durée d'expiration
@@ -116,27 +110,41 @@ export const refreshAccessToken = async (refreshToken: string, req: Request) => 
  * Révoque un refresh token (utilisé pour la déconnexion)
  */
 export const revokeRefreshToken = async (refreshToken: string) => {
-  const result = await Token.updateOne({ refreshToken }, { isRevoked: true });
-
-  return result.modifiedCount > 0;
+  const token = tokenStore.get(refreshToken);
+  if (token) {
+    token.isRevoked = true;
+    tokenStore.set(refreshToken, token);
+    return true;
+  }
+  return false;
 };
 
 /**
  * Révoque tous les refresh tokens d'un utilisateur
  */
 export const revokeAllUserTokens = async (userId: string) => {
-  const result = await Token.updateMany({ userId }, { isRevoked: true });
-
-  return result.modifiedCount;
+  let count = 0;
+  for (const [refreshToken, token] of tokenStore.entries()) {
+    if (token.userId === userId) {
+      token.isRevoked = true;
+      tokenStore.set(refreshToken, token);
+      count++;
+    }
+  }
+  return count;
 };
 
 /**
  * Nettoie les tokens expirés ou révoqués (à exécuter périodiquement)
  */
 export const cleanupTokens = async () => {
-  const result = await Token.deleteMany({
-    $or: [{ expiresAt: { $lt: new Date() } }, { isRevoked: true }],
-  });
-
-  return result.deletedCount;
+  const now = new Date();
+  let count = 0;
+  for (const [refreshToken, token] of tokenStore.entries()) {
+    if (token.isRevoked || token.expiresAt < now) {
+      tokenStore.delete(refreshToken);
+      count++;
+    }
+  }
+  return count;
 };

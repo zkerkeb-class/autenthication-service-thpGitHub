@@ -8,7 +8,6 @@ process.env.NODE_ENV = 'test';
 process.env.PORT = '5000';
 process.env.COOKIE_SECRET = 'test-secret';
 process.env.JWT_SECRET = 'test-jwt-secret';
-process.env.MONGODB_URI = 'mongodb://localhost:27017/auth-service-test';
 process.env.FRONTEND_URL = 'http://localhost:3000';
 process.env.GITHUB_CLIENT_ID = 'test-github-id';
 process.env.GITHUB_CLIENT_SECRET = 'test-github-secret';

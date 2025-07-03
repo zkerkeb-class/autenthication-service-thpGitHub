@@ -2,7 +2,15 @@ import passport from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import config from './env';
-import { User } from '../models/User';
+import jwt from 'jsonwebtoken';
+
+interface UserProfile {
+  id: string;
+  provider: string;
+  displayName: string;
+  email: string;
+  avatar?: string;
+}
 
 // Configure passport to use GitHub and Google strategies
 export const setupPassport = () => {
@@ -12,28 +20,26 @@ export const setupPassport = () => {
       {
         clientID: config.auth.github.clientId!,
         clientSecret: config.auth.github.clientSecret!,
-        callbackURL: `${config.urls.callback}/github`,
+        callbackURL: config.urls.callback.github,
       },
-      async (accessToken: string, refreshToken: string, profile: any, done: any) => {
+      async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
         try {
-          // Vérifier si l'utilisateur existe déjà
-          let user = await User.findOne({ id: profile.id, provider: 'github' });
+          // Créer un objet utilisateur simple avec les infos GitHub
+          const user: UserProfile = {
+            id: profile.id,
+            provider: 'github',
+            displayName: profile.displayName || profile.username,
+            email: profile.emails?.[0]?.value || `${profile.username}@github.com`,
+            avatar: profile.photos?.[0]?.value,
+          };
 
-          // Si l'utilisateur n'existe pas, le créer
-          if (!user) {
-            user = await User.create({
-              id: profile.id,
-              provider: 'github',
-              displayName: profile.displayName || profile.username,
-              email: profile.emails?.[0]?.value || `${profile.username}@github.com`,
-              avatar: profile.photos?.[0]?.value,
-            });
-            console.log('Nouvel utilisateur GitHub créé:', user.id);
-          } else {
-            console.log('Utilisateur GitHub existant:', user.id);
-          }
+          // Générer un JWT
+          const token = jwt.sign(user, config.jwt.secret, {
+            expiresIn: '24h'
+          });
 
-          return done(null, user);
+          // Ajouter le token à l'utilisateur
+          return done(null, { ...user, token });
         } catch (error) {
           console.error("Erreur lors de l'authentification GitHub:", error);
           return done(error);
@@ -48,28 +54,26 @@ export const setupPassport = () => {
       {
         clientID: config.auth.google.clientId!,
         clientSecret: config.auth.google.clientSecret!,
-        callbackURL: `${config.urls.callback}/google`,
+        callbackURL: config.urls.callback.google,
       },
-      async (accessToken: string, refreshToken: string, profile: any, done: any) => {
+      async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
         try {
-          // Vérifier si l'utilisateur existe déjà
-          let user = await User.findOne({ id: profile.id, provider: 'google' });
+          // Créer un objet utilisateur simple avec les infos Google
+          const user: UserProfile = {
+            id: profile.id,
+            provider: 'google',
+            displayName: profile.displayName,
+            email: profile.emails?.[0]?.value,
+            avatar: profile.photos?.[0]?.value,
+          };
 
-          // Si l'utilisateur n'existe pas, le créer
-          if (!user) {
-            user = await User.create({
-              id: profile.id,
-              provider: 'google',
-              displayName: profile.displayName,
-              email: profile.emails?.[0]?.value,
-              avatar: profile.photos?.[0]?.value,
-            });
-            console.log('Nouvel utilisateur Google créé:', user.id);
-          } else {
-            console.log('Utilisateur Google existant:', user.id);
-          }
+          // Générer un JWT
+          const token = jwt.sign(user, config.jwt.secret, {
+            expiresIn: '24h'
+          });
 
-          return done(null, user);
+          // Ajouter le token à l'utilisateur
+          return done(null, { ...user, token });
         } catch (error) {
           console.error("Erreur lors de l'authentification Google:", error);
           return done(error);
@@ -77,21 +81,6 @@ export const setupPassport = () => {
       }
     )
   );
-
-  // User serialization - used for session management
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: string, done) => {
-    try {
-      // Trouver l'utilisateur dans la base de données
-      const user = await User.findOne({ id });
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
 
   return passport;
 };

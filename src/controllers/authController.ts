@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
-import { createError } from '../middlewares/errorHandler';
 import config from '../config/env';
+import jwt from 'jsonwebtoken';
+import { revokeRefreshToken } from '../utils/tokenUtils';
 
 /**
  * Contrôleur gérant l'authentification des utilisateurs
@@ -140,7 +141,7 @@ export const githubAuth = passport.authenticate('github', { scope: ['user:email'
  * @returns {void}
  */
 export const githubCallback = (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('github', { session: true }, (err: Error | null, user: any) => {
+  passport.authenticate('github', { session: false }, (err: Error | null, user: any) => {
     if (err) {
       return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
     }
@@ -149,14 +150,8 @@ export const githubCallback = (req: Request, res: Response, next: NextFunction) 
       return res.redirect(`/auth/error?message=Authentication failed`);
     }
 
-    req.logIn(user, (err: Error | null) => {
-      if (err) {
-        return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
-      }
-
-      // Rediriger vers le profil plutôt que /auth/success
-      return res.redirect(`/profile`);
-    });
+    // Rediriger vers notre route de callback avec le token
+    return res.redirect(`/auth/callback?token=${user.token}`);
   })(req, res, next);
 };
 
@@ -178,7 +173,7 @@ export const googleAuth = passport.authenticate('google', { scope: ['profile', '
  * @returns {void}
  */
 export const googleCallback = (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('google', { session: true }, (err: Error | null, user: any) => {
+  passport.authenticate('google', { session: false }, (err: Error | null, user: any) => {
     if (err) {
       return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
     }
@@ -187,38 +182,49 @@ export const googleCallback = (req: Request, res: Response, next: NextFunction) 
       return res.redirect(`/auth/error?message=Authentication failed`);
     }
 
-    req.logIn(user, (err: Error | null) => {
-      if (err) {
-        return res.redirect(`/auth/error?message=${encodeURIComponent(err.message)}`);
-      }
-
-      // Rediriger vers le profil plutôt que /auth/success
-      return res.redirect(`/profile`);
-    });
+    // Rediriger vers notre route de callback avec le token
+    return res.redirect(`/auth/callback?token=${user.token}`);
   })(req, res, next);
 };
 
 /**
- * Déconnecte l'utilisateur et détruit la session
+ * Déconnecte l'utilisateur en révoquant son token
  *
  * @function logout
  * @param {Request} req - Requête Express
  * @param {Response} res - Réponse Express
  * @returns {void}
  */
-export const logout = (req: Request, res: Response) => {
-  req.logout((err: Error | null) => {
-    if (err) {
-      return res.status(500).json({
-        success: false,
-        message: 'Error during logout',
-        error: err.message,
-      });
-    }
+export const logout = async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    return res.status(401).json({
+      success: false,
+      message: 'No token provided'
+    });
+  }
 
-    // Rediriger vers la page d'accueil
-    res.redirect(process.env.FRONTEND_URL || '/');
-  });
+  const token = authHeader.split(' ')[1];
+  
+  try {
+    // Vérifier que le token est valide
+    const decoded = jwt.verify(token, config.jwt.secret!);
+    
+    // Révoquer le token
+    await revokeRefreshToken(token);
+
+    return res.json({
+      success: true,
+      message: 'Successfully logged out'
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 };
 
 /**
@@ -230,16 +236,29 @@ export const logout = (req: Request, res: Response) => {
  * @returns {Object} Statut d'authentification et infos utilisateur si connecté
  */
 export const getAuthStatus = (req: Request, res: Response) => {
-  if (req.isAuthenticated()) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    return res.json({
+      success: true,
+      isAuthenticated: false
+    });
+  }
+
+  const token = authHeader.split(' ')[1];
+  
+  try {
+    const decoded = jwt.verify(token, config.jwt.secret!);
     return res.json({
       success: true,
       isAuthenticated: true,
-      user: req.user,
+      user: decoded
     });
-  } else {
+  } catch (error) {
     return res.json({
       success: true,
       isAuthenticated: false,
+      error: 'Invalid token'
     });
   }
 };
@@ -267,6 +286,40 @@ export const getProfile = (req: Request, res: Response) => {
 };
 
 /**
+ * Vérifier le token JWT
+ *
+ * @function verifyToken
+ * @param {Request} req - Requête Express
+ * @param {Response} res - Réponse Express
+ * @returns {Object} Statut d'authentification et infos utilisateur si connecté
+ */
+export const verifyToken = (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    return res.status(401).json({
+      success: false,
+      message: 'No token provided'
+    });
+  }
+
+  const token = authHeader.split(' ')[1];
+  
+  try {
+    const decoded = jwt.verify(token, config.jwt.secret!);
+    return res.json({
+      success: true,
+      user: decoded
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
+  }
+};
+
+/**
  * Renvoie les URLs d'authentification disponibles
  *
  * @function getAuthUrls
@@ -274,10 +327,10 @@ export const getProfile = (req: Request, res: Response) => {
  * @param {Response} res - Réponse Express
  * @returns {Object} URLs d'authentification pour chaque provider
  */
-export const getAuthUrls = (req: Request, res: Response) => {
-  const baseUrl = config.urls.callback.split('/auth/callback')[0];
+export const getAuthUrls = (_req: Request, res: Response) => {
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   res.json({
     github: `${baseUrl}/auth/github`,
-    google: `${baseUrl}/auth/google`,
+    google: `${baseUrl}/auth/google`
   });
 };

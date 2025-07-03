@@ -11,6 +11,20 @@ router.get('/callback/github', authController.githubCallback);
 router.get('/google', authController.googleAuth);
 router.get('/callback/google', authController.googleCallback);
 
+// Route de callback générique
+router.get('/callback', (req, res) => {
+  const token = req.query.token as string;
+  if (!token) {
+    return res.status(400).json({
+      success: false,
+      message: 'No token provided'
+    });
+  }
+
+  // Rediriger vers la page de succès avec le token
+  res.redirect(`/auth/success?token=${token}`);
+});
+
 // Page d'erreur simple
 router.get('/error', (req, res) => {
   const message = req.query.message || "Une erreur s'est produite";
@@ -22,10 +36,11 @@ router.get('/error', (req, res) => {
 
 // Page de succès simple
 router.get('/success', (req, res) => {
+  const token = req.query.token;
   res.json({
     success: true,
     message: 'Authentification réussie',
-    user: req.user,
+    token
   });
 });
 
