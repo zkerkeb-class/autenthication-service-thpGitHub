@@ -46,10 +46,10 @@ USER appuser
 
 # Variables d'environnement
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3006
 
 # Exposer le port
-EXPOSE 3000
+EXPOSE 3006
 
 # Commande de démarrage
 CMD ["node", "dist/index.js"] 

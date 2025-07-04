@@ -14,8 +14,8 @@ jest.mock('../../controllers/authController', () => ({
     .mockImplementation((req, res) => res.json({ success: true, isAuthenticated: false })),
   getAuthUrls: jest.fn().mockImplementation((req, res) =>
     res.json({
-      github: 'http://localhost:3000/auth/github',
-      google: 'http://localhost:3000/auth/google',
+      github: 'http://localhost:3006/auth/github',
+      google: 'http://localhost:3006/auth/google',
     })
   ),
   logout: jest.fn().mockImplementation((req, res) => res.redirect('/')),
@@ -55,8 +55,8 @@ describe('Auth Routes', () => {
     const response = await request(app).get('/auth/urls');
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      github: 'http://localhost:3000/auth/github',
-      google: 'http://localhost:3000/auth/google',
+      github: 'http://localhost:3006/auth/github',
+      google: 'http://localhost:3006/auth/google',
     });
   });
 

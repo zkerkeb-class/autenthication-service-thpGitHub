@@ -11,7 +11,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const isProd = NODE_ENV === 'production';
 
 // Server
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '3006', 10);
 const COOKIE_SECRET = process.env.COOKIE_SECRET || (isProd ? undefined : 'dev_secret_change_me');
 
 // Make sure we have a session secret in production
@@ -32,7 +32,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 // URLs
 const BASE_URL = isProd ? process.env.BASE_URL! : `http://localhost:${PORT}`;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3005';
 
 // Callback URLs spécifiques à chaque provider
 const CALLBACK_URLS = {

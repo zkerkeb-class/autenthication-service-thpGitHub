@@ -213,8 +213,8 @@ router.get('/test-token', (req, res) => {
                   
                   <h4>Tester avec l'API protégée:</h4>
                   <p>Utilisez cette commande curl:</p>
-                  <pre>curl -H "Authorization: Bearer \${token}" http://localhost:3000/api/protected</pre>
-                  <button class="copy" onclick="copyToClipboard('curl -H \\\\"Authorization: Bearer \${token}\\\\" http://localhost:3000/api/protected')">Copier la commande</button>
+                  <pre>curl -H "Authorization: Bearer \${token}" http://localhost:3006/api/protected</pre>
+                  <button class="copy" onclick="copyToClipboard('curl -H \\\\"Authorization: Bearer \${token}\\\\" http://localhost:3006/api/protected')">Copier la commande</button>
                 \`;
               } else {
                 resultDiv.innerHTML += \`

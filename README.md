@@ -53,6 +53,9 @@ GITHUB_CLIENT_ID=votre_client_id
 GITHUB_CLIENT_SECRET=votre_client_secret
 GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
 
+# MongoDB
+MONGODB_URI=votre_uri_mongodb_atlas
+
 # JWT
 JWT_SECRET=votre_secret_jwt
 JWT_EXPIRATION=24h
@@ -116,4 +119,4 @@ Les logs sont gérés par Pino et stockés dans `/logs` :
 
 ## 📄 Licence
 
-ISC 
+ISC

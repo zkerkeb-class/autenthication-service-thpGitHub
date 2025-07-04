@@ -150,8 +150,11 @@ export const githubCallback = (req: Request, res: Response, next: NextFunction) 
       return res.redirect(`/auth/error?message=Authentication failed`);
     }
 
-    // Rediriger vers notre route de callback avec le token
-    return res.redirect(`/auth/callback?token=${user.token}`);
+    // Récupérer l'URL de callback de la session ou utiliser une URL par défaut
+    const callbackUrl = req.query.callback_url || 'http://localhost:3005/auth/callback';
+    
+    // Rediriger vers l'URL de callback avec le token
+    return res.redirect(`${callbackUrl}?token=${user.token}`);
   })(req, res, next);
 };
 
@@ -328,7 +331,7 @@ export const verifyToken = (req: Request, res: Response) => {
  * @returns {Object} URLs d'authentification pour chaque provider
  */
 export const getAuthUrls = (_req: Request, res: Response) => {
-  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3006';
   res.json({
     github: `${baseUrl}/auth/github`,
     google: `${baseUrl}/auth/google`
